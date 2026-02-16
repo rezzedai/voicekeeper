@@ -1,31 +1,45 @@
-# Voicekeeper
+# Your writing sounds like ChatGPT. Here's the proof.
 
-AI leaves fingerprints. This finds them.
+**Before:**
+> It's important to note that this innovative solution seamlessly leverages cutting-edge technology. Moreover, the ecosystem enables stakeholders to unlock unprecedented value.
+
+```
+Score: 87/100 — AI
+Flags: "important to note" (hedging), "Moreover" (transition),
+       "seamlessly" (fluff), "leverages" (fluff), "unprecedented" (fluff)
+```
+
+**After you fix the flags:**
+> This tool catches the vocabulary, transitions, and hedging that make your writing sound machine-generated. Paste a paragraph, get a score, fix what it finds.
+
+```
+Score: 11/100 — Human
+Flags: none
+```
+
+Same idea. Zero AI fingerprint. That's Voicekeeper.
 
 ---
 
-## Try it now
+## The problem
+
+54% of LinkedIn posts are AI-generated. They get 45% less engagement.
+
+Your grammar isn't the problem. Your vocabulary is. Every "leverage," "moreover," and "it's important to note" tells the reader this was written by a chatbot. Not because those words are wrong. Because they've read that exact sentence 400 times today.
+
+---
+
+## Try it free — no install
+
+**[My Voice Proofreader](https://chatgpt.com/g/g-69936f8589788191b347117e4d74f354-my-voice-proofreader)** — a free Custom GPT that scans your text for AI writing patterns and strips them out. Paste your text, get your score, fix the flags. No account, no npm, no config.
+
+Or from your terminal:
 
 ```bash
 npx @rezzedai/voicekeeper detect "Your text here"
 ```
 
 No setup. No account. No config.
-
----
-
-## Before & After
-
-**Input:**
-> It's important to note that this innovative solution seamlessly leverages cutting-edge technology. Moreover, the ecosystem enables stakeholders to unlock unprecedented value.
-
-**Output:**
-```
-Score: 87/100 — ai
-5 flags: hedging, transitions, fluff (×3)
-```
-
-That paragraph scored 87. Every red flag identified. Now you know exactly what to fix.
 
 ---
 
