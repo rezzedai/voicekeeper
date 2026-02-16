@@ -374,15 +374,6 @@ console.log(match);
 
 voicekeeper analyzes one text at a time. [Rezzed Grid-as-a-Service](https://rezzed.ai) runs voice-aware agent teams — where every AI-generated output passes through style matching and authenticity checks automatically.
 
-**What you get with Grid-as-a-Service:**
-- Multi-agent workflows with built-in voice verification
-- Continuous profiling across all generated content
-- Real-time deviation alerts when outputs drift from brand voice
-- Pre-configured voice profiles for technical writing, marketing, documentation
-- Integration with existing content pipelines via API and webhooks
-
-Learn more at [rezzed.ai](https://rezzed.ai).
-
 ---
 
 ## License
