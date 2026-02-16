@@ -20,7 +20,7 @@ voicekeeper match new-post.md --profile flynn.json
 - **AI Detection** — Scans text for 38 AI-generated patterns across 6 categories (hedging, transitions, fluff, politeness, qualifiers, structure)
 - **Voice Profiling** — Builds statistical fingerprints from reference text: vocabulary, sentence structure, punctuation habits, distinctive phrases
 - **Voice Matching** — Compares new text against profiles using 9 weighted metrics (word length, rarity, phrase overlap, sentence variation)
-- **Zero Dependencies** — Pure Node.js, no external runtime dependencies
+- **Model-Agnostic** — Works with ANY text source: Claude, GPT, Gemini, human-written, or mixed. Pure TypeScript, zero vendor dependencies.
 - **Three Interfaces** — CLI tool, programmatic API, or MCP server for agent workflows
 
 ---
@@ -370,9 +370,9 @@ console.log(match);
 
 ---
 
-## Want More?
+## What's Next?
 
-voicekeeper analyzes one text at a time. [Rezzed Grid-as-a-Service](https://rezzed.ai) runs voice-aware agent teams — where every AI-generated output passes through style matching and authenticity checks automatically.
+More tools coming from the @rezzedai toolkit. See [rezzed.ai](https://rezzed.ai) for updates.
 
 ---
 
