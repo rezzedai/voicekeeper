@@ -1,0 +1,32 @@
+{
+  "name": "@rezzedai/voicekeeper",
+  "version": "0.1.0",
+  "description": "AI writing detection and voice profile matching",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "voicekeeper": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rezzedai/voicekeeper.git"
+  },
+  "keywords": ["ai-detection", "writing-style", "voice-matching", "text-analysis"],
+  "author": "rezzedai",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rezzedai/voicekeeper/issues"
+  },
+  "homepage": "https://github.com/rezzedai/voicekeeper#readme",
+  "devDependencies": {
+    "@types/node": "^25.2.3",
+    "typescript": "^5.9.3"
+  }
+}
