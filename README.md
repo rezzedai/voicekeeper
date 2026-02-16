@@ -12,6 +12,8 @@ npx @rezzedai/voicekeeper detect "Your text here"
 
 No setup. No account. No config.
 
+Don't want the CLI? **[Try it in ChatGPT.](https://chatgpt.com/g/g-69936f8589788191b347117e4d74f354-my-voice-proofreader)**
+
 ---
 
 ## Before & After
