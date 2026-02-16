@@ -3,9 +3,11 @@ import cors from "cors";
 import rateLimit from "express-rate-limit";
 import * as fs from "fs";
 import * as path from "path";
+import { timingSafeEqual as cryptoTimingSafeEqual } from "crypto";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const voicekeeper = require("../../dist/index.js");
+
 const detectAI: (text: string) => {
   score: number;
   verdict: string;
@@ -13,8 +15,110 @@ const detectAI: (text: string) => {
   summary: string;
 } = voicekeeper.detectAI;
 
+const buildProfile: (text: string, name: string) => {
+  name: string;
+  sourceLength: number;
+  vocabulary: {
+    uniqueWords: number;
+    totalWords: number;
+    avgWordLength: number;
+    topWords: [string, number][];
+    rarityScore: number;
+  };
+  sentences: {
+    count: number;
+    avgLength: number;
+    minLength: number;
+    maxLength: number;
+    stdDevLength: number;
+    questionRatio: number;
+    exclamationRatio: number;
+  };
+  punctuation: {
+    commasPerSentence: number;
+    semicolonsPerSentence: number;
+    dashesPerSentence: number;
+    ellipsesCount: number;
+    parenthesesCount: number;
+  };
+  phrases: string[];
+  createdAt: string;
+} = voicekeeper.buildProfile;
+
+const matchVoice: (text: string, profile: unknown) => {
+  similarity: number;
+  verdict: string;
+  deviations: Array<{ aspect: string; expected: string; actual: string; severity: string }>;
+  summary: string;
+} = voicekeeper.matchVoice;
+
 const app = express();
 const PORT = process.env.PORT || 8080;
+const API_KEY = process.env.VOICEKEEPER_API_KEY;
+
+// Constant-time comparison helper
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  return cryptoTimingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
+
+// API Key Authentication Middleware
+function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (!API_KEY) {
+    // No key configured — reject all (fail closed)
+    return res.status(503).json({ error: "Service not configured" });
+  }
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  const token = auth.slice(7);
+  // Constant-time comparison to prevent timing attacks
+  if (!timingSafeEqual(token, API_KEY)) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  next();
+}
+
+// Profile validation helper
+function validateProfile(profile: unknown): string | null {
+  if (!profile || typeof profile !== "object" || Array.isArray(profile)) {
+    return "Missing or invalid 'profile' field";
+  }
+  const p = profile as Record<string, unknown>;
+
+  // Required string fields
+  if (typeof p.name !== "string") return "Profile missing 'name' (string)";
+  if (typeof p.createdAt !== "string") return "Profile missing 'createdAt' (string)";
+
+  // Required number fields
+  if (typeof p.sourceLength !== "number") return "Profile missing 'sourceLength' (number)";
+
+  // Vocabulary sub-object
+  if (!p.vocabulary || typeof p.vocabulary !== "object") return "Profile missing 'vocabulary' (object)";
+  const v = p.vocabulary as Record<string, unknown>;
+  if (typeof v.uniqueWords !== "number") return "Profile.vocabulary missing 'uniqueWords'";
+  if (typeof v.totalWords !== "number") return "Profile.vocabulary missing 'totalWords'";
+  if (typeof v.avgWordLength !== "number") return "Profile.vocabulary missing 'avgWordLength'";
+  if (typeof v.rarityScore !== "number") return "Profile.vocabulary missing 'rarityScore'";
+  if (!Array.isArray(v.topWords)) return "Profile.vocabulary missing 'topWords' (array)";
+
+  // Sentences sub-object
+  if (!p.sentences || typeof p.sentences !== "object") return "Profile missing 'sentences' (object)";
+  const s = p.sentences as Record<string, unknown>;
+  if (typeof s.count !== "number") return "Profile.sentences missing 'count'";
+  if (typeof s.avgLength !== "number") return "Profile.sentences missing 'avgLength'";
+
+  // Punctuation sub-object
+  if (!p.punctuation || typeof p.punctuation !== "object") return "Profile missing 'punctuation' (object)";
+  const punc = p.punctuation as Record<string, unknown>;
+  if (typeof punc.commasPerSentence !== "number") return "Profile.punctuation missing 'commasPerSentence'";
+
+  // Phrases array
+  if (!Array.isArray(p.phrases)) return "Profile missing 'phrases' (array)";
+
+  return null; // valid
+}
 
 // Middleware
 app.use(cors());
@@ -28,18 +132,22 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Health endpoint
+// Health endpoint (unauthenticated)
 app.get("/v1/health", (_req: Request, res: Response) => {
   res.json({ status: "ok", version: "0.1.0" });
 });
 
-// Detect AI endpoint
-app.post("/v1/detect", (req: Request, res: Response, next: NextFunction) => {
+// Detect AI endpoint (authenticated)
+app.post("/v1/detect", requireAuth, (req: Request, res: Response, next: NextFunction) => {
   try {
     const { text } = req.body;
 
     if (!text || typeof text !== "string") {
       return res.status(400).json({ error: "Missing or invalid 'text' field" });
+    }
+
+    if (text.length < 50) {
+      return res.status(400).json({ error: "Text must be at least 50 characters" });
     }
 
     if (text.length > 50000) {
@@ -65,13 +173,17 @@ app.post("/v1/detect", (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// Proofread endpoint
-app.post("/v1/proofread", (req: Request, res: Response, next: NextFunction) => {
+// Proofread endpoint (authenticated)
+app.post("/v1/proofread", requireAuth, (req: Request, res: Response, next: NextFunction) => {
   try {
     const { text } = req.body;
 
     if (!text || typeof text !== "string") {
       return res.status(400).json({ error: "Missing or invalid 'text' field" });
+    }
+
+    if (text.length < 50) {
+      return res.status(400).json({ error: "Text must be at least 50 characters" });
     }
 
     if (text.length > 50000) {
@@ -174,7 +286,69 @@ app.post("/v1/proofread", (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// OpenAPI spec endpoint
+// Profile endpoint (authenticated)
+app.post("/v1/profile", requireAuth, (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { text, name } = req.body;
+    
+    // Validate text
+    if (!text || typeof text !== "string") {
+      return res.status(400).json({ error: "Missing or invalid 'text' field" });
+    }
+    if (text.length < 100) {
+      return res.status(400).json({ error: "Text must be at least 100 characters for voice profiling" });
+    }
+    if (text.length > 50000) {
+      return res.status(413).json({ error: "Text exceeds maximum length of 50,000 characters" });
+    }
+    
+    // Validate name
+    if (!name || typeof name !== "string") {
+      return res.status(400).json({ error: "Missing or invalid 'name' field" });
+    }
+    if (name.length > 100) {
+      return res.status(400).json({ error: "Name must be 100 characters or less" });
+    }
+
+    const profile = buildProfile(text, name);
+    res.json(profile);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Match endpoint (authenticated)
+app.post("/v1/match", requireAuth, (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { text, profile } = req.body;
+    
+    // Validate text
+    if (!text || typeof text !== "string") {
+      return res.status(400).json({ error: "Missing or invalid 'text' field" });
+    }
+    if (text.length < 50) {
+      return res.status(400).json({ error: "Text must be at least 50 characters" });
+    }
+    if (text.length > 50000) {
+      return res.status(413).json({ error: "Text exceeds maximum length of 50,000 characters" });
+    }
+    
+    // Validate profile structure
+    const validationError = validateProfile(profile);
+    if (validationError) {
+      return res.status(400).json({ error: validationError });
+    }
+
+    // Freeze profile to prevent prototype pollution
+    const safeProfile = Object.freeze(JSON.parse(JSON.stringify(profile)));
+    const result = matchVoice(text, safeProfile);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// OpenAPI spec endpoint (unauthenticated)
 app.get("/openapi.json", (_req: Request, res: Response, next: NextFunction) => {
   try {
     const openapiPath = path.join(__dirname, "../openapi.json");
@@ -185,7 +359,7 @@ app.get("/openapi.json", (_req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// Privacy policy endpoint
+// Privacy policy endpoint (unauthenticated)
 app.get("/privacy-policy", (_req: Request, res: Response, next: NextFunction) => {
   try {
     const privacyPath = path.join(__dirname, "../privacy-policy.md");
