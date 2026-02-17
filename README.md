@@ -36,7 +36,7 @@ Your grammar isn't the problem. Your vocabulary is. Every "leverage," "moreover,
 Or from your terminal:
 
 ```bash
-npx @rezzedai/voicekeeper detect "Your text here"
+npx @rezzed.ai/voicekeeper detect "Your text here"
 ```
 
 No setup. No account. No config.
@@ -56,7 +56,7 @@ No setup. No account. No config.
 ## Install
 
 ```bash
-npm install @rezzedai/voicekeeper
+npm install @rezzed.ai/voicekeeper
 ```
 
 Or just use `npx` — no install required.
@@ -78,7 +78,7 @@ Pipe from stdin with `-`. Add `--pretty` for formatted output.
 ### Code
 
 ```typescript
-import { detectAI, buildProfile, matchVoice } from '@rezzedai/voicekeeper';
+import { detectAI, buildProfile, matchVoice } from '@rezzed.ai/voicekeeper';
 
 const result = detectAI(text);        // → { score, verdict, flags }
 const profile = buildProfile(text);   // → voice fingerprint
@@ -92,7 +92,7 @@ const match = matchVoice(text, profile); // → { similarity, verdict }
   "mcpServers": {
     "voicekeeper": {
       "command": "npx",
-      "args": ["-y", "@rezzedai/voicekeeper", "--mcp"]
+      "args": ["-y", "@rezzed.ai/voicekeeper", "--mcp"]
     }
   }
 }
