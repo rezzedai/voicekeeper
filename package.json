@@ -1,5 +1,5 @@
 {
-  "name": "@rezzedai/voicekeeper",
+  "name": "@rezzed.ai/voicekeeper",
   "version": "0.1.0",
   "description": "AI writing detection and voice profile matching",
   "main": "dist/index.js",
