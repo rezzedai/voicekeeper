@@ -124,13 +124,13 @@ function validateProfile(profile: unknown): string | null {
 app.use(cors());
 app.use(express.json({ limit: "100kb" }));
 
-const limiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 100,
+const postLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 60,
   standardHeaders: true,
   legacyHeaders: false,
+  message: { error: "Too many requests. Limit: 60 per minute. Please try again shortly." },
 });
-app.use(limiter);
 
 // Health endpoint (unauthenticated)
 app.get("/v1/health", (_req: Request, res: Response) => {
@@ -138,7 +138,7 @@ app.get("/v1/health", (_req: Request, res: Response) => {
 });
 
 // Detect AI endpoint (authenticated)
-app.post("/v1/detect", requireAuth, (req: Request, res: Response, next: NextFunction) => {
+app.post("/v1/detect", postLimiter, requireAuth, (req: Request, res: Response, next: NextFunction) => {
   try {
     const { text } = req.body;
 
@@ -174,7 +174,7 @@ app.post("/v1/detect", requireAuth, (req: Request, res: Response, next: NextFunc
 });
 
 // Proofread endpoint (authenticated)
-app.post("/v1/proofread", requireAuth, (req: Request, res: Response, next: NextFunction) => {
+app.post("/v1/proofread", postLimiter, requireAuth, (req: Request, res: Response, next: NextFunction) => {
   try {
     const { text } = req.body;
 
@@ -287,7 +287,7 @@ app.post("/v1/proofread", requireAuth, (req: Request, res: Response, next: NextF
 });
 
 // Profile endpoint (authenticated)
-app.post("/v1/profile", requireAuth, (req: Request, res: Response, next: NextFunction) => {
+app.post("/v1/profile", postLimiter, requireAuth, (req: Request, res: Response, next: NextFunction) => {
   try {
     const { text, name } = req.body;
     
@@ -318,7 +318,7 @@ app.post("/v1/profile", requireAuth, (req: Request, res: Response, next: NextFun
 });
 
 // Match endpoint (authenticated)
-app.post("/v1/match", requireAuth, (req: Request, res: Response, next: NextFunction) => {
+app.post("/v1/match", postLimiter, requireAuth, (req: Request, res: Response, next: NextFunction) => {
   try {
     const { text, profile } = req.body;
     
